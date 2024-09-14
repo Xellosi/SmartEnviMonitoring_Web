@@ -1,0 +1,70 @@
+@page "/weather"
+@using Microsoft.AspNetCore.SignalR.Client
+@using SmartEnviMonitoring.Common.Clients
+@using SmartEnviMonitoring.Common.Model
+@using System.Collections.Concurrent
+@using System.Diagnostics
+@using SmartEnviMonitoring.UI.Client.Model
+@inject AppState appState
+
+<PageTitle>Weather</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Weather Measurement</MudText>
+<MudDivider />
+
+<MudDataGrid Items="@appState.Reports">
+    <Columns>
+        <PropertyColumn Property="x => x.Index" Title="Index"  />
+        <PropertyColumn Property="x => x.DateTime" Title="DateTime"  />
+        <PropertyColumn Property="x => x.TemperatureC" Title="TemperatureC" />
+        <PropertyColumn Property="x => x.Humidity" Title="Humidity" />
+        <PropertyColumn Property="x => x.DeviceUID" Title="Device" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="WeatherReportDetail" />
+    </PagerContent>
+</MudDataGrid>
+
+@code 
+{
+    [Inject]
+    private IDialogService? DialogService { get; set; }
+    private bool initialized = false;
+    protected override async void OnInitialized()
+    {
+        if (initialized){
+            return;
+        }
+        try {
+            appState.TryStartHub();
+            appState.HubClient.WeatherReportArrival = WeatherReportArrival;
+        }
+        catch(Exception exc){
+            await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
+            await Clear();
+        }
+        initialized = true;
+        InvokeAsync(() => {
+            StateHasChanged();
+        });
+    }
+
+    public async void Dispose()
+    {
+        await Clear();
+        Console.WriteLine($"weather dispose");
+    }
+
+    private async void WeatherReportArrival(object sender, ReportArrivalEventArgs e)
+    {
+        appState.AddWeatherReport(e.Report);
+        InvokeAsync(() => {
+            StateHasChanged();
+        });
+    }
+
+    private async Task Clear()
+    {
+
+    }
+}

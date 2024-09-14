@@ -1,0 +1,74 @@
+﻿@page "/"
+@using SmartEnviMonitoring.Common.Clients
+@using SmartEnviMonitoring.Common.Model
+@using System.Diagnostics
+@using SmartEnviMonitoring.UI.Client.Model
+@using System.ComponentModel.DataAnnotations
+@inject AppState appState
+
+<PageTitle>Smart Environment Monitoring</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Smart Environment Monitoring</MudText>
+<MudDivider />
+<MudText Typo="Typo.subtitle1" GutterBottom="true">Login Devices</MudText>
+
+<MudDataGrid Items="@appState.Devices">
+    <Columns>
+        <PropertyColumn Property="x => x.DeviceUID" Title="Device" />
+        <PropertyColumn Property="x => x.LastLoginTimestamp" title="Last Login Timestamp" />
+    </Columns>
+</MudDataGrid>
+
+@code
+{
+    private SmartEnviMonitoring.UI.ServiceClient? _client = null;
+    [Inject]
+    private IDialogService? DialogService { get; set; }
+    private bool initialized = false;
+    protected async override void OnInitialized()
+    {
+        if (initialized){
+            return;
+        }
+        try {
+            appState.TryStartHub();
+            appState.HubClient.LoginDevicesChanged = LoginDevicesChanged;
+            if (_client == null){
+                _client = new ServiceClient("http://192.168.47.157:80", new HttpClient());
+            }
+            ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
+            appState.Devices = dtos.ToList();
+        }
+        catch(Exception exc){
+            await Clear();
+            await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
+        }
+        initialized = true;
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
+    }
+
+    public async void Dispose()
+    {
+        await Clear();
+        Console.WriteLine($"home dispose");
+        initialized = false;
+    }
+
+    private async void LoginDevicesChanged(object sender, LoginDevicesChangedEventArgs e)
+    {
+        ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
+        appState.Devices = dtos.ToList();
+        await InvokeAsync(() => {
+            StateHasChanged();
+        });
+    }
+
+    private async Task Clear()
+    {
+        if (_client != null){
+            _client = null;
+        }
+    }
+}
