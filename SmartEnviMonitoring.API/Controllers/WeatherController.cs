@@ -11,6 +11,7 @@ using SmartEnviMonitoring.API.Data.Monitoring;
 using SmartEnviMonitoring.API.Data.System;
 using SmartEnviMonitoring.API.Hubs;
 using SmartEnviMonitoring.API.Repositories;
+using SmartEnviMonitoring.API.Services;
 using SmartEnviMonitoring.Common.Clients;
 using SmartEnviMonitoring.Common.Model;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,13 +29,15 @@ public class WeatherController : ControllerBase
     private readonly IDeviceRepository _deviceRepository;
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly ILoginDevicesService _loginDevicesService;
     private IHubContext<DeviceHub> _deviceHubContext;
     private readonly HttpResBuilder _commandBuilder;
 
     public WeatherController(IWeatherRepository weatherRepository,
     IMapper mapper, IWebHostEnvironment webHostEnvironment, 
     IHubContext<DeviceHub> deviceHubContext,
-    HttpResBuilder commandBuilder, IDeviceRepository deviceRepository)
+    HttpResBuilder commandBuilder, IDeviceRepository deviceRepository,
+    ILoginDevicesService loginDevicesService)
     {
         this._weatherRepository = weatherRepository;
         this._deviceRepository = deviceRepository;
@@ -44,6 +47,7 @@ public class WeatherController : ControllerBase
         this._commandBuilder = commandBuilder;
 
         this._deviceHubContext = deviceHubContext;
+        this._loginDevicesService = loginDevicesService;
     }
 
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -63,6 +67,8 @@ public class WeatherController : ControllerBase
             Log.Error($"Unknown device {dto.DeviceUID}");   
             return _commandBuilder.PostResponse(key, CommandResult.Error);
         }
+
+        _loginDevicesService.Devices.TryAdd(dto.DeviceUID, device);
         
         record.Source = device;
         record.Timestamp = DateTime.Now;

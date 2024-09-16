@@ -116,6 +116,11 @@ class Program
             //app.UseEndpoints(endpoints => endpoints.MapHub<Hubs.ChatHub>("/chathub"));
             app.MapHub<DeviceHub>(DeviceHubClient.HUBURL);
 
+            using(IServiceScope serviceScope = app.Services.CreateScope()){
+                var context = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
+                context.Database.EnsureCreated();
+            }
+
             app.Run();
         }
         catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design")

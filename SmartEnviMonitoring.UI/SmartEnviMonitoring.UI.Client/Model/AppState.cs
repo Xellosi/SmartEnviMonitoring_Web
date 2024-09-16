@@ -20,22 +20,14 @@ public class AppState
 
     public AppState()
     {
-        if (HubClient == null){
-            HubClient = new DeviceHubClient("http://192.168.47.157");
-            //TryStartHub();
-        }
+
     }
 
-    public bool TryStartHub(){
-        if (HubClient.Started){
-            return true;
+    public async Task StartHubAsync(){
+        if (HubClient == null){
+            HubClient = new DeviceHubClient("http://127.0.0.1");
         }
-        try{
-            HubClient.StartAsync();
-            return true;
-        }catch(Exception exc){
-            return false;
-        }
+        await HubClient.StartAsync();
     }
 
     public void AddWeatherReport(Common.Model.WeatherReportDto dto){
