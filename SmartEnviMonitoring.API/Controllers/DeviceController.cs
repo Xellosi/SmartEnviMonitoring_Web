@@ -74,6 +74,9 @@ public class DeviceController : ControllerBase
 
         device.LastLoginTimestamp = DateTime.Now;
         device.State = DeviceState.Online;
+
+        await _deviceRepository.UpdateAsync(device);
+
         if (_loginDevicesService.Devices.TryAdd(deviceUID, device)){
             try{
                 string msg = $"device {deviceUID} login.";

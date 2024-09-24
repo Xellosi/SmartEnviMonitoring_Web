@@ -68,6 +68,9 @@ public class WeatherController : ControllerBase
             return _commandBuilder.PostResponse(key, CommandResult.Error);
         }
 
+        device.LastLoginTimestamp = DateTime.Now;
+        await _deviceRepository.UpdateAsync(device);
+
         _loginDevicesService.Devices.TryAdd(dto.DeviceUID, device);
         
         record.Source = device;
