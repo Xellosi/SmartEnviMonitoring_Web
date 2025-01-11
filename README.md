@@ -7,7 +7,7 @@ The website manages and displays weather measurements from devices [SmartEnviMon
 # Projects
 - SmartEnviMonitoring.Common
   > Common models and functionalities
-- SmartEnviMonitoring.API (Asp.Net)
+- SmartEnviMonitoring.API (Asp.Net Core)
   > The web backend
 - SmartEnviMonitoring.UI (Blazor, MudBlazor)
   > The web frontend displays the devices connected and measurement records.
