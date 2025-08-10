@@ -34,14 +34,14 @@
             await appState.StartHubAsync();
             appState.HubClient.LoginDevicesChanged = LoginDevicesChanged;
             if (_client == null){
-                _client = new ServiceClient("http://192.168.47.157:80", new HttpClient());
+                _client = new ServiceClient("http://localhost:80", new HttpClient());
             }
             ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
             appState.Devices = dtos.ToList();
         }
         catch(Exception exc){
-            await Clear();
-            await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
+            Clear();
+            //await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
         }
         initialized = true;
         await InvokeAsync(() => {
@@ -49,23 +49,25 @@
         });
     }
 
-    public async void Dispose()
+    public void Dispose()
     {
-        await Clear();
+        Clear();
         Console.WriteLine($"home dispose");
         initialized = false;
     }
 
     private async void LoginDevicesChanged(object sender, LoginDevicesChangedEventArgs e)
     {
-        ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
-        appState.Devices = dtos.ToList();
-        await InvokeAsync(() => {
-            StateHasChanged();
-        });
+        if(_client != null){
+            ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
+                appState.Devices = dtos.ToList();
+                await InvokeAsync(() => {
+                    StateHasChanged();
+                });
+        }
     }
 
-    private async Task Clear()
+    private void Clear()
     {
         if (_client != null){
             _client = null;

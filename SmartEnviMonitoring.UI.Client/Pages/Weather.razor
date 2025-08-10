@@ -41,7 +41,7 @@
         }
         catch(Exception exc){
             await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
-            await Clear();
+            Clear();
         }
         initialized = true;
         InvokeAsync(() => {
@@ -49,9 +49,9 @@
         });
     }
 
-    public async void Dispose()
+    public void Dispose()
     {
-        await Clear();
+        Clear();
         Console.WriteLine($"weather dispose");
     }
 
@@ -63,7 +63,7 @@
         });
     }
 
-    private async Task Clear()
+    private void Clear()
     {
 
     }

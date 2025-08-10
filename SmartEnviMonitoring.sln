@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartEnviMonitoring.API", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartEnviMonitoring.UI", "SmartEnviMonitoring.UI\SmartEnviMonitoring.UI.csproj", "{22AF7170-4BDB-4436-8E2D-33BB51435646}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartEnviMonitoring.UI.Test", "SmartEnviMonitoring.UI.Test\SmartEnviMonitoring.UI.Test.csproj", "{61396763-EBF0-4745-8BEF-411870F68822}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartEnviMonitoring.API.Test", "SmartEnviMonitoring.API.Test\SmartEnviMonitoring.API.Test.csproj", "{E37F3B4D-F700-4F93-A056-56873B001D15}"
 EndProject
 Global
