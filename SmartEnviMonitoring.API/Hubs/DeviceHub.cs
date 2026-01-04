@@ -1,12 +1,22 @@
+using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
-using SmartEnviMonitoring.Common.Model;
+using SmartEnviMonitoring.API.Services;
 using SmartEnviMonitoring.Common.Clients;
+using SmartEnviMonitoring.Common.Model;
 
 namespace SmartEnviMonitoring.API.Hubs;
 
 public class DeviceHub : Hub
 {
     public static HashSet<string> ConnectedIds = new HashSet<string>();
+    private readonly ILoginDevicesService _loginDevicesService;
+    private readonly IMapper _mapper;
+
+    public DeviceHub(ILoginDevicesService loginDevicesService, IMapper mapper)
+    {
+        _loginDevicesService = loginDevicesService;
+        _mapper = mapper;
+    }
     public async Task LoginDevicesChanged(List<DeviceDto> devices)
     {
         await Clients.All.SendAsync(SignalEvents.DevicesUpdated.ToString(), devices);
@@ -17,12 +27,15 @@ public class DeviceHub : Hub
         await Clients.All.SendAsync(SignalEvents.MeasurementArrival.ToString(), reports);
     }
 
-    public override Task OnConnectedAsync()
+    public override async Task OnConnectedAsync()
     {
         lock(ConnectedIds){
             ConnectedIds.Add(Context.ConnectionId);
         }
-        return base.OnConnectedAsync();
+        await Clients.Caller.SendAsync(
+            SignalEvents.DevicesUpdated.ToString(),
+            _loginDevicesService.Devices.Values.Select(d => _mapper.Map<DeviceDto>(d)).ToArray());
+        await base.OnConnectedAsync();
     }
 
     public override Task OnDisconnectedAsync(Exception exception)

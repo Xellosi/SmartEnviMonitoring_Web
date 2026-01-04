@@ -35,7 +35,6 @@ class Program
             var options = new MqttServerOptionsBuilder().WithDefaultEndpoint();
             _mqttServer = new MqttFactory().CreateMqttServer(options.Build());
             _mqttManager = new MqttManager(_mqttServer);
-            _mqttServer.StartAsync().Wait();
         }
         catch(Exception exc){
             Log.Error(exc, "starting mqtt server failed.");
@@ -77,7 +76,10 @@ class Program
             builder.Host.UseSerilog((ctx, lc) =>
                 lc.WriteTo.Console().ReadFrom.Configuration(ctx.Configuration));
 
+            builder.Services.Configure<DevicePresenceOptions>(
+                builder.Configuration.GetSection("DevicePresence"));
             builder.Services.AddHostedService<LifetimeEventsHostedService>();
+            builder.Services.AddHostedService<DevicePresenceMonitor>();
 
             builder.Services.AddSignalR();
 

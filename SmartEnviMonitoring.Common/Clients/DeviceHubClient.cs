@@ -25,24 +25,41 @@ public class DeviceHubClient : IAsyncDisposable
     /// </summary>
     public async Task StartAsync()
     {
-        if (Started){
-            return;
+        if (_hubConnection == null)
+        {
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(_hubUrl)
+                .WithAutomaticReconnect()
+                .Build();
+
+            _hubConnection.On<List<DeviceDto>>(
+                SignalEvents.DevicesUpdated.ToString(), HandleLoginDevicesChanged);
+
+            _hubConnection.On<WeatherReportDto>(
+                SignalEvents.MeasurementArrival.ToString(), HandleWeatherReportArrival);
+
+            _hubConnection.Closed += exception =>
+            {
+                Started = false;
+                return Task.CompletedTask;
+            };
+            _hubConnection.Reconnected += connectionId =>
+            {
+                Started = true;
+                return Task.CompletedTask;
+            };
         }
-        
-        _hubConnection = new HubConnectionBuilder()
-        .WithUrl(_hubUrl)
-        .Build();
 
-        _hubConnection.On<List<DeviceDto>>(
-            SignalEvents.DevicesUpdated.ToString(), HandleLoginDevicesChanged);
+        if (_hubConnection.State == HubConnectionState.Disconnected)
+        {
+            await _hubConnection.StartAsync();
+        }
 
-        _hubConnection.On<WeatherReportDto>(
-            SignalEvents.MeasurementArrival.ToString(), HandleWeatherReportArrival);
-
-        await _hubConnection.StartAsync();
-
-        Console.WriteLine("Client Started.");
-        Started = true;
+        Started = _hubConnection.State != HubConnectionState.Disconnected;
+        if (Started)
+        {
+            Console.WriteLine("Client Started.");
+        }
     }
 
     /// <summary>
@@ -50,15 +67,13 @@ public class DeviceHubClient : IAsyncDisposable
     /// </summary>
     public async Task StopAsync()
     {
-        if (!Started){
+        if (_hubConnection == null)
+        {
             return;
         }
 
-        if (_hubConnection != null){
-            await _hubConnection.StopAsync();
-            await _hubConnection.DisposeAsync();   
-        }
-
+        await _hubConnection.StopAsync();
+        await _hubConnection.DisposeAsync();
         _hubConnection = null;
         Started = false;
         Console.WriteLine("Client stopped.");

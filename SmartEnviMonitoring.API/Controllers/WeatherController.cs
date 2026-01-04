@@ -69,15 +69,27 @@ public class WeatherController : ControllerBase
         }
 
         device.LastLoginTimestamp = DateTime.Now;
+        device.State = DeviceState.Online;
         await _deviceRepository.UpdateAsync(device);
 
-        _loginDevicesService.Devices.TryAdd(dto.DeviceUID, device);
+        bool added = _loginDevicesService.Devices.TryAdd(dto.DeviceUID, device);
+        if (!added){
+            if (_loginDevicesService.Devices.TryGetValue(dto.DeviceUID, out MonitoringDevice existing)){
+                existing.LastLoginTimestamp = device.LastLoginTimestamp;
+                existing.State = device.State;
+            }
+        }
         
         record.Source = device;
         record.Timestamp = DateTime.Now;
         record = await _weatherRepository.AddAsync(record);
 
         Console.WriteLine(DeviceHub.ConnectedIds.Count());
+        if (added){
+            await _deviceHubContext.Clients.All.SendAsync(
+                SignalEvents.DevicesUpdated.ToString(),
+                _loginDevicesService.Devices.Values.Select(d => _mapper.Map<DeviceDto>(d)).ToArray());
+        }
         await _deviceHubContext.Clients.All.SendAsync(
             SignalEvents.MeasurementArrival.ToString(), dto);
 

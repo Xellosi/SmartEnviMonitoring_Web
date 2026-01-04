@@ -8,8 +8,13 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartEnviMonitoring.UI.Client\SmartEnviMonitoring.UI.Client.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.*" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.*" />
+    <PackageReference Include="MudBlazor" Version="7.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartEnviMonitoring.Common\SmartEnviMonitoring.Common.csproj" />
   </ItemGroup>
 
 </Project>

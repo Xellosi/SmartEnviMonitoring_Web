@@ -37,4 +37,8 @@
     <ProjectReference Include="..\SmartEnviMonitoring.Common\SmartEnviMonitoring.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Watch Remove="logs/**" />
+  </ItemGroup>
+
 </Project>

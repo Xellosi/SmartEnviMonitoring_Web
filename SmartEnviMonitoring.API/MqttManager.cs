@@ -21,6 +21,7 @@ public class MqttManager : IHostedService, IDisposable{
 
     private readonly MqttServer _mqttServer;
     private readonly HttpResBuilder _commandBuilder;
+    private bool _serverStarted = false;
     private ConcurrentDictionary<string, List<IMQTTCommand>> SentCommandsById = 
     new ConcurrentDictionary<string, List<IMQTTCommand>>();
     
@@ -103,11 +104,15 @@ public class MqttManager : IHostedService, IDisposable{
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        if (!_serverStarted) {
+            return;
+        }
         if (_mqttServer != null){
             try {
                 Log.Information($"MQTT Stopping MQTT server start.");
                 await _mqttServer.StopAsync(new MqttServerStopOptions());
                 Log.Information($"MQTT Stopping MQTT server end.");
+                _serverStarted = false;
             }
             catch(Exception exc){
                 Log.Error(exc, $"MQTT Stopping MQTT server failed.");

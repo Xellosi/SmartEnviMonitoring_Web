@@ -24,36 +24,28 @@
     private SmartEnviMonitoring.UI.ServiceClient? _client = null;
     [Inject]
     private IDialogService? DialogService { get; set; }
-    private bool initialized = false;
-    protected async override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (initialized){
-            return;
+        appState.Devices.Clear();
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            await LoadDevicesAsync();
         }
-        try {
-            await appState.StartHubAsync();
-            appState.HubClient.LoginDevicesChanged = LoginDevicesChanged;
-            if (_client == null){
-                _client = new ServiceClient("http://localhost:80", new HttpClient());
-            }
-            ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
-            appState.Devices = dtos.ToList();
-        }
-        catch(Exception exc){
+        catch (Exception exc)
+        {
             Clear();
-            //await DialogService?.ShowMessageBox("Error", $"init failed. {exc}");
+            await DialogService?.ShowMessageBox("Error", $"load devices failed. {exc}");
         }
-        initialized = true;
-        await InvokeAsync(() => {
-            StateHasChanged();
-        });
+
+        StartHubAsync();
     }
 
     public void Dispose()
     {
         Clear();
         Console.WriteLine($"home dispose");
-        initialized = false;
     }
 
     private async void LoginDevicesChanged(object sender, LoginDevicesChangedEventArgs e)
@@ -71,6 +63,34 @@
     {
         if (_client != null){
             _client = null;
+        }
+    }
+
+    private async Task LoadDevicesAsync()
+    {
+        if (_client == null)
+        {
+            _client = new ServiceClient(appState.ApiBaseUrl, new HttpClient());
+        }
+        ICollection<UI.DeviceDto> dtos = await _client.LogindevicesAsync();
+        appState.Devices = dtos.ToList();
+        Console.WriteLine($"num devices: {dtos.Count}");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task StartHubAsync()
+    {
+        try
+        {
+            await appState.StartHubAsync();
+            if (appState.HubClient != null)
+            {
+                appState.HubClient.LoginDevicesChanged = LoginDevicesChanged;
+            }
+        }
+        catch (Exception exc)
+        {
+            //await DialogService?.ShowMessageBox("Error", $"hub init failed. {exc}");
         }
     }
 }

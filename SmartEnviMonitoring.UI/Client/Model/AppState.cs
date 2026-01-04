@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Configuration;
 using SmartEnviMonitoring.Common.Clients;
 
 namespace SmartEnviMonitoring.UI.Client.Model;
@@ -17,15 +18,20 @@ public class AppState
     public List<UI.DeviceDto> Devices = new List<UI.DeviceDto>();
     
     public DeviceHubClient? HubClient = null;
+    public string ApiBaseUrl { get; }
+    public string HubBaseUrl { get; }
 
-    public AppState()
+    public AppState(IConfiguration configuration)
     {
-
+        ApiBaseUrl = configuration["Api:BaseUrl"]
+            ?? throw new InvalidOperationException("Api:BaseUrl is not configured.");
+        HubBaseUrl = configuration["Hub:BaseUrl"]
+            ?? throw new InvalidOperationException("Hub:BaseUrl is not configured.");
     }
 
     public async Task StartHubAsync(){
         if (HubClient == null){
-            HubClient = new DeviceHubClient("http://127.0.0.1");
+            HubClient = new DeviceHubClient(HubBaseUrl);
         }
         await HubClient.StartAsync();
     }

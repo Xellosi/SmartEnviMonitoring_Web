@@ -66,18 +66,25 @@ public class DeviceController : ControllerBase
         }
 
         MonitoringDevice device = _deviceRepository.FindDevice(deviceUID);
-
         if (device == null){
-            Log.Error($"Unknown Device {deviceUID}");
+            Log.Error($"device {deviceUID} not found.");
             return _commandBuilder.PostResponse(responseKey, CommandResult.Error);
         }
-
+        
         device.LastLoginTimestamp = DateTime.Now;
         device.State = DeviceState.Online;
 
         await _deviceRepository.UpdateAsync(device);
 
-        if (_loginDevicesService.Devices.TryAdd(deviceUID, device)){
+        bool added = _loginDevicesService.Devices.TryAdd(deviceUID, device);
+        if (!added){
+            if (_loginDevicesService.Devices.TryGetValue(deviceUID, out MonitoringDevice existing)){
+                existing.LastLoginTimestamp = device.LastLoginTimestamp;
+                existing.State = device.State;
+            }
+        }
+
+        if (added){
             try{
                 string msg = $"device {deviceUID} login.";
                 await _eventRepository.AddAsync(new SystemEvent(EventLevel.Informational, msg));

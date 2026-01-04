@@ -1,0 +1,5 @@
+2026-01-01 20:25:13.749 +08:00 [INF] OnStopping has been called.
+2026-01-01 20:25:13.750 +08:00 [INF] MQTT Stopping MQTT server start.
+2026-01-01 20:25:13.756 +08:00 [INF] MQTT Stopping MQTT server end.
+2026-01-01 20:25:13.756 +08:00 [INF] Application is shutting down...
+2026-01-01 20:25:13.761 +08:00 [INF] Server stopped.
